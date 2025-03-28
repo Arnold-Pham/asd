@@ -1,0 +1,17 @@
+---
+- name: Installer Docker sur les Nodes
+  hosts: sun
+  become: true
+
+  tasks:
+    - name: Copier le script d'installation
+      copy:
+        src: ./script.sh
+        dest: /home/ubuntu/script.sh
+        mode: '0755'
+
+    - name: Exécuter le script
+      command: bash /home/ubuntu/script.sh
+
+    - name: Supprimer le script
+      command: rm /home/ubuntu/script.sh

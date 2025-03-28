@@ -1,0 +1,10 @@
+sun-key
+sun-key.pub
+
+.terraform
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
+terraform.tfstate
+terraform.tfstate.backup
+terraform.tfvars.local
+somme.txt
