@@ -1,5 +1,6 @@
 ---
 - name: Installer Docker sur les Nodes
+  remote_user: ubuntu
   hosts: sun
   become: true
 

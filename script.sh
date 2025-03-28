@@ -40,7 +40,7 @@ echo -e "${BLUE}=============================================${RESET}\n"
 
 # Définition des chemins absolus
 BASE_DIR=$(pwd)
-TF_FOLDER="$BASE_DIR/Sun/Terra"
+TF_FOLDER="$BASE_DIR/Sun/Terraform"
 ANSIBLE_FOLDER="$BASE_DIR/Sun/Ansible"
 KEY_PATH="$TF_FOLDER/sun-key"
 HOSTS_FILE="$ANSIBLE_FOLDER/hosts"

@@ -1,9 +1,9 @@
 resource "aws_vpc" "main" {
   cidr_block = var.vpc_cidr
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "VPC-Sun"
-  }
+  })
 }
 
 resource "aws_subnet" "subnet_1" {
@@ -12,9 +12,9 @@ resource "aws_subnet" "subnet_1" {
   availability_zone       = var.subnet_zone1
   cidr_block              = var.subnet_cidrs[0]
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "Subnet-Public"
-  }
+  })
 }
 
 resource "aws_subnet" "subnet_2" {
@@ -23,17 +23,17 @@ resource "aws_subnet" "subnet_2" {
   availability_zone       = var.subnet_zone2
   cidr_block              = var.subnet_cidrs[1]
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "Subnet-Private"
-  }
+  })
 }
 
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.main.id
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "Internet-Gateway"
-  }
+  })
 }
 
 resource "aws_route_table" "route_table_1" {
@@ -44,17 +44,17 @@ resource "aws_route_table" "route_table_1" {
     gateway_id = aws_internet_gateway.gw.id
   }
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "Route-Public"
-  }
+  })
 }
 
 resource "aws_route_table" "route_table_2" {
   vpc_id = aws_vpc.main.id
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "Route-Private"
-  }
+  })
 }
 
 resource "aws_route_table_association" "assoc_1" {
@@ -68,15 +68,16 @@ resource "aws_route_table_association" "assoc_2" {
 }
 
 resource "aws_security_group" "sun_sg" {
-  name        = "sun_sg"
+  name        = "sun-sg-${aws_vpc.main.id}"
   vpc_id      = aws_vpc.main.id
-  description = "Groupe de securite pour la machine Sun"
+  description = "Security group pour la machine Sun"
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "Security-Group-Sun"
-  }
+  })
 
   ingress {
+    description = "SSH"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -84,6 +85,7 @@ resource "aws_security_group" "sun_sg" {
   }
 
   ingress {
+    description = "HTTP"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -91,6 +93,7 @@ resource "aws_security_group" "sun_sg" {
   }
 
   ingress {
+    description = "HTTPS"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
@@ -109,13 +112,13 @@ resource "aws_key_pair" "sun_key" {
   key_name   = var.ssh_key_name
   public_key = file("sun-key.pub")
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "Key-Sun"
-  }
+  })
 }
 
 resource "aws_iam_role" "sun_role" {
-  name               = "sun-role"
+  name = "sun-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -128,37 +131,38 @@ resource "aws_iam_role" "sun_role" {
     }]
   })
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "IAM-Role-Sun"
-  }
+  })
 }
 
-resource "aws_iam_role_policy_attachment" "ec2_policy" {
+resource "aws_iam_role_policy_attachment" "sun_policies" {
+  count      = length(var.iam_policies)
   role       = aws_iam_role.sun_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
-}
-
-resource "aws_iam_role_policy_attachment" "s3_policy" {
-  role       = aws_iam_role.sun_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+  policy_arn = var.iam_policies[count.index]
 }
 
 resource "aws_iam_instance_profile" "sun_instance_profile" {
-  name = "sun-instance-profile"
+  name = "sun-instance-profile-${random_id.suffix.hex}"
   role = aws_iam_role.sun_role.name
 }
 
 resource "aws_instance" "sun" {
+  depends_on = [
+    aws_internet_gateway.gw,
+    aws_security_group.sun_sg
+  ]
+
   associate_public_ip_address = true
   private_ip                  = "192.168.0.10"
-  ami                         = "ami-0160e8d70ebc43ee1"
+  ami                         = var.ami
   instance_type               = var.instance_type
   subnet_id                   = aws_subnet.subnet_1.id
   iam_instance_profile        = aws_iam_instance_profile.sun_instance_profile.name
   key_name                    = aws_key_pair.sun_key.key_name
   vpc_security_group_ids      = [aws_security_group.sun_sg.id]
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "Sun"
-  }
+  })
 }
