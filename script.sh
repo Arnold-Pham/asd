@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Définition des couleurs
 RED="\e[31m"
 GREEN="\e[32m"
 YELLOW="\e[33m"
@@ -8,11 +7,11 @@ BLUE="\e[34m"
 CYAN="\e[36m"
 RESET="\e[0m"
 
+set -e
 echo -e "\n${BLUE}=============================================${RESET}"
 echo -e "${BLUE}  Vérification et installation des outils  ${RESET}"
 echo -e "${BLUE}=============================================${RESET}\n"
 
-# Vérifier si Terraform est installé
 if ! command -v terraform &> /dev/null; then
     echo -e "${YELLOW}[INFO] Terraform n'est pas installé. Installation en cours...${RESET}"
     wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
@@ -25,7 +24,6 @@ fi
 
 echo ""
 
-# Vérifier si Ansible est installé
 if ! command -v ansible &> /dev/null; then
     echo -e "${YELLOW}[INFO] Ansible n'est pas installé. Installation en cours...${RESET}"
     sudo apt update && sudo apt install -y ansible
@@ -38,14 +36,16 @@ echo -e "\n${BLUE}=============================================${RESET}"
 echo -e "${BLUE}  Configuration des chemins et clés SSH  ${RESET}"
 echo -e "${BLUE}=============================================${RESET}\n"
 
-# Définition des chemins absolus
 BASE_DIR=$(pwd)
 TF_FOLDER="$BASE_DIR/Sun/Terraform"
 ANSIBLE_FOLDER="$BASE_DIR/Sun/Ansible"
 KEY_PATH="$TF_FOLDER/sun-key"
+KEY_PATH_PUB="$TF_FOLDER/sun-key.pub"
+SSH_FOLDER="$HOME/.ssh"
+NEW_KEY_PATH="$SSH_FOLDER/sun-key"
+NEW_KEY_PATH_PUB="$SSH_FOLDER/sun-key.pub"
 HOSTS_FILE="$ANSIBLE_FOLDER/hosts"
 
-# Vérifier si la clé SSH existe déjà
 if [ -f "$KEY_PATH" ]; then
     echo -e "${GREEN}[OK] La clé SSH existe déjà : $KEY_PATH${RESET}"
 else
@@ -58,7 +58,6 @@ echo -e "\n${BLUE}=============================================${RESET}"
 echo -e "${BLUE}  Déploiement de l'instance avec Terraform  ${RESET}"
 echo -e "${BLUE}=============================================${RESET}\n"
 
-# Déploiement de la machine avec Terraform
 echo -e "${CYAN}[INFO] Initialisation de Terraform...${RESET}"
 terraform -chdir="$TF_FOLDER" init
 
@@ -70,23 +69,51 @@ echo -e "\n${BLUE}=============================================${RESET}"
 echo -e "${BLUE}  Récupération de l'IP publique  ${RESET}"
 echo -e "${BLUE}=============================================${RESET}\n"
 
-# Récupération de l'IP publique et mise à jour de l'inventaire Ansible
-SUN_PUBLIC_IP=$(terraform -chdir="$TF_FOLDER" output -raw sun_public_ip)
+SUN_PUBLIC_IP=""
+for i in {1..5}; do
+    SUN_PUBLIC_IP=$(terraform -chdir="$TF_FOLDER" output -raw sun_public_ip)
+    if [ -n "$SUN_PUBLIC_IP" ]; then
+        echo -e "${CYAN}[INFO] IP récupérée : ${SUN_PUBLIC_IP}${RESET}"
+        break
+    else
+        echo -e "${YELLOW}[INFO] Tentative $i/5 pour récupérer l'IP publique...${RESET}"
+        sleep 10
+    fi
+done
+
 if [ -n "$SUN_PUBLIC_IP" ]; then
-    echo -e "${CYAN}[INFO] IP récupérée : ${SUN_PUBLIC_IP}${RESET}"
     echo -e "[sun]\n$SUN_PUBLIC_IP" > "$HOSTS_FILE"
     echo -e "${GREEN}[OK] Fichier d'inventaire Ansible mis à jour.${RESET}"
 else
-    echo -e "${RED}[ERROR] Impossible de récupérer l'IP publique.${RESET}"
+    echo -e "${RED}[ERROR] Impossible de récupérer l'IP publique après plusieurs tentatives.${RESET}"
     exit 1
 fi
+
+echo -e "\n${BLUE}=============================================${RESET}"
+echo -e "${BLUE}  Déplacement des clés pour Ansible  ${RESET}"
+echo -e "${BLUE}=============================================${RESET}\n"
+
+rm -f "$NEW_KEY_PATH" "$NEW_KEY_PATH_PUB"
+
+mkdir -p "$SSH_FOLDER"
+cp "$KEY_PATH" "$SSH_FOLDER/"
+cp "$KEY_PATH_PUB" "$SSH_FOLDER/"
+
+chmod 700 "$SSH_FOLDER"
+chmod 600 "$NEW_KEY_PATH"
+chmod 644 "$NEW_KEY_PATH_PUB"
+
+sleep 10
 
 echo -e "\n${BLUE}=============================================${RESET}"
 echo -e "${BLUE}  Exécution du playbook Ansible  ${RESET}"
 echo -e "${BLUE}=============================================${RESET}\n"
 
-# Exécution du playbook Ansible
 echo -e "${CYAN}[INFO] Démarrage du playbook Ansible...${RESET}"
-ansible-playbook -i "$HOSTS_FILE" --private-key "$KEY_PATH" "$ANSIBLE_FOLDER/install.yml" --ssh-common-args="-o StrictHostKeyChecking=accept-new"
+
+if ! ansible-playbook -i "$HOSTS_FILE" --private-key "$NEW_KEY_PATH" "$ANSIBLE_FOLDER/install.yml" --ssh-common-args="-o StrictHostKeyChecking=accept-new"; then
+    echo -e "${RED}[ERROR] Le playbook Ansible a échoué.${RESET}"
+    exit 1
+fi
 
 echo -e "${GREEN}[OK] Déploiement terminé avec succès !${RESET}\n"
