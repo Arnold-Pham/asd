@@ -5,6 +5,7 @@ RED="\e[31m"
 GREEN="\e[32m"
 YELLOW="\e[33m"
 BLUE="\e[34m"
+CYAN="\e[36m"
 RESET="\e[0m"
 
 echo -e "\n${BLUE}=============================================${RESET}"
@@ -23,7 +24,7 @@ done
 
 # Installation des pré-requis pour Docker
 echo -e "${CYAN}[INFO] Installation des pré-requis pour Docker...${RESET}"
-sudo apt-get install -y ca-certificates curl zip
+sudo apt-get install -y ca-certificates curl zip gnupg software-properties-common unzip
 
 # Ajouter la clé GPG de Docker
 echo -e "${CYAN}[INFO] Ajout de la clé GPG officielle de Docker...${RESET}"
@@ -48,13 +49,8 @@ sudo chmod 777 /var/run/docker.sock
 echo -e "${CYAN}[INFO] Ajout de l'utilisateur au groupe Docker...${RESET}"
 sudo usermod -aG docker $USER
 
-# Mettre à jour la liste des paquets
-echo -e "${CYAN}[INFO] Mise à jour de la liste des paquets...${RESET}"
-sudo apt-get update
-
 # Installer Terraform
 echo -e "${CYAN}[INFO] Installation de Terraform...${RESET}"
-sudo apt-get install -y gnupg software-properties-common
 wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 sudo apt update
@@ -80,4 +76,40 @@ else
     echo -e "${GREEN}[OK] Le nom de la machine est déjà 'Sun'.${RESET}"
 fi
 
-echo -e "${GREEN}[OK] Installation terminée avec succès !${RESET}\n"
+# Création des clés SSH pour chaque instance Cloud-n
+echo -e "\n${BLUE}=============================================${RESET}"
+echo -e "${BLUE}  Génération des clés SSH pour les machines Cloud ${RESET}"
+echo -e "${BLUE}=============================================${RESET}\n"
+
+SSH_DIR="/home/ubuntu/.ssh"
+mkdir -p "$SSH_DIR"
+chmod 700 "$SSH_DIR"
+
+for i in {1..4}; do
+    KEY_FILE="$SSH_DIR/cloud-key-$i"
+    if [ ! -f "$KEY_FILE" ]; then
+        echo -e "${CYAN}[INFO] Génération de la clé SSH : $KEY_FILE...${RESET}"
+        ssh-keygen -t rsa -b 4096 -f "$KEY_FILE" -N ""
+        chmod 600 "$KEY_FILE"
+    else
+        echo -e "${YELLOW}[SKIP] La clé SSH $KEY_FILE existe déjà, saut de la génération.${RESET}"
+    fi
+done
+
+# # Vérifier la présence de Terraform et exécuter l'init/apply
+# echo -e "\n${BLUE}=============================================${RESET}"
+# echo -e "${BLUE}  Déploiement de l'infrastructure avec Terraform ${RESET}"
+# echo -e "${BLUE}=============================================${RESET}\n"
+
+# TF_DIR="/home/ubuntu/Cloud/Terraform"
+# if [ -d "$TF_DIR" ]; then
+#     echo -e "${CYAN}[INFO] Initialisation de Terraform...${RESET}"
+#     terraform -chdir="$TF_DIR" init
+
+#     echo -e "${CYAN}[INFO] Application du plan Terraform...${RESET}"
+#     terraform -chdir="$TF_DIR" apply -auto-approve
+# else
+#     echo -e "${RED}[ERROR] Le dossier Terraform est introuvable à l'emplacement : $TF_DIR${RESET}"
+# fi
+
+# echo -e "${GREEN}[OK] Installation et déploiement terminés avec succès !${RESET}\n"

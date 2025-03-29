@@ -1,18 +1,21 @@
 ---
-- name: Installer Docker sur les Nodes
+- name: Déployer l'infrastructure sur Sun
   remote_user: ubuntu
   hosts: sun
   become: true
 
   tasks:
-    - name: Copier le script d'installation
+    - name: Copier le dossier Terraform Cloud vers Sun
+      copy:
+        src: ../../Cloud/
+        dest: /home/ubuntu/Cloud
+        mode: '0755'
+
+    - name: Copier le script d'installation sur Sun
       copy:
         src: ./script.sh
         dest: /home/ubuntu/script.sh
         mode: '0755'
 
-    - name: Exécuter le script
-      command: bash /home/ubuntu/script.sh
-
-    - name: Supprimer le script
-      command: rm /home/ubuntu/script.sh
+    - name: Exécuter le script d'installation
+      command: bash /home/ubuntu/script.sh &> /home/ubuntu/script.log
