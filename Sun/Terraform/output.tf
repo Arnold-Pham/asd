@@ -8,11 +8,6 @@ output "sun_public_ip" {
   value       = aws_instance.sun.public_ip
 }
 
-output "sun_private_ip" {
-  description = "Adresse IP privée de l'instance Sun"
-  value       = aws_instance.sun.private_ip
-}
-
 output "subnet_1_id" {
   description = "ID du premier sous-réseau créé"
   value       = aws_subnet.subnet_1.id

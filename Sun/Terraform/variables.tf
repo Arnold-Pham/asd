@@ -38,22 +38,12 @@ variable "subnet_zone1" {
   description = "Zone de disponibilité du sous-réseau 1"
   type        = string
   default     = "eu-west-3a"
-
-  validation {
-    condition     = can(regex("^eu-west-3[a-c]$", var.subnet_zone1))
-    error_message = "Zone de disponibilité invalide pour eu-west-3"
-  }
 }
 
 variable "subnet_zone2" {
   description = "Zone de disponibilité du sous-réseau 2"
   type        = string
   default     = "eu-west-3b"
-
-  validation {
-    condition     = can(regex("^eu-west-3[a-c]$", var.subnet_zone2))
-    error_message = "Zone de disponibilité invalide pour eu-west-3"
-  }
 }
 
 variable "ssh_key_name" {
