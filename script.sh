@@ -103,6 +103,8 @@ chmod 700 "$SSH_FOLDER"
 chmod 600 "$NEW_KEY_PATH"
 chmod 644 "$NEW_KEY_PATH_PUB"
 
+echo -e "${GREEN}[OK] Déplacement effectué.${RESET}"
+
 sleep 10
 
 echo -e "\n${BLUE}=============================================${RESET}"
