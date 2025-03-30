@@ -17,5 +17,13 @@
         dest: /home/ubuntu/script.sh
         mode: '0755'
 
-    - name: Exécuter le script d'installation
-      command: bash /home/ubuntu/script.sh &> /home/ubuntu/script.log
+    - name: Exécuter le script et capturer les logs
+      command: bash /home/ubuntu/script.sh $> /home/ubuntu/script.log
+      register: script_output
+      ignore_errors: true
+
+    - name: Récupérer les logs sur l'hôte local
+      fetch:
+        src: /home/ubuntu/script.log
+        dest: ./script.log
+        flat: yes
