@@ -89,6 +89,8 @@ else
     exit 1
 fi
 
+cp "$TF_DIR/terraform.tfvars" "$BASE_DIR/Cloud/Terraform/"
+
 echo -e "\n${BLUE}=============================================${RESET}"
 echo -e "${BLUE}  Déplacement des clés pour Ansible  ${RESET}"
 echo -e "${BLUE}=============================================${RESET}\n"

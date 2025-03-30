@@ -85,16 +85,15 @@ SSH_DIR="/home/ubuntu/.ssh"
 mkdir -p "$SSH_DIR"
 chmod 700 "$SSH_DIR"
 
-for i in {1..4}; do
-    KEY_FILE="$SSH_DIR/cloud-key-$i"
-    if [ ! -f "$KEY_FILE" ]; then
-        echo -e "${CYAN}[INFO] Génération de la clé SSH : $KEY_FILE...${RESET}"
-        ssh-keygen -t rsa -b 4096 -f "$KEY_FILE" -N ""
-        chmod 600 "$KEY_FILE"
-    else
-        echo -e "${YELLOW}[SKIP] La clé SSH $KEY_FILE existe déjà, saut de la génération.${RESET}"
-    fi
-done
+KEY_FILE="$SSH_DIR/cloud-key"
+if [ ! -f "$KEY_FILE" ]; then
+    echo -e "${YELLOW}[INFO] Génération d'une nouvelle clé SSH pour Ubuntu Server AWS...${RESET}"
+    ssh-keygen -t rsa -b 4096 -m PEM -C "cloud-key" -f "$KEY_PATH" -N ""
+    echo -e "${GREEN}[OK] Clé SSH générée : $KEY_PATH${RESET}"
+    chmod 600 "$KEY_FILE"
+else
+    echo -e "${GREEN}[OK] La clé SSH existe déjà : $KEY_PATH${RESET}"
+fi
 
 # # Vérifier la présence de Terraform et exécuter l'init/apply
 # echo -e "\n${BLUE}=============================================${RESET}"
