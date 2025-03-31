@@ -89,7 +89,9 @@ else
     exit 1
 fi
 
-cp "$TF_DIR/terraform.tfvars" "$BASE_DIR/Cloud/Terraform/"
+VPC_ID=$(terraform -chdir="$TF_FOLDER" output -raw vpc_id)
+cp "$TF_DIR/terraform.tfvars" "$BASE_DIR/Cloud/Terraform/terraform.tfvars"
+echo -e "vpc_id = \"$VPC_ID\"" >> $BASE_DIR/Cloud/Terraform/terraform.tfvars
 
 echo -e "\n${BLUE}=============================================${RESET}"
 echo -e "${BLUE}  Déplacement des clés pour Ansible  ${RESET}"

@@ -27,9 +27,16 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "subnet_id" {
-  description = "ID du sous-réseau existant dans lequel déployer les instances"
+variable "subnet_cidr" {
+  description = "Liste des plages CIDR pour les sous-réseaux"
   type        = string
+  default     = "192.168.1.0/24"
+}
+
+variable "subnet_zone" {
+  description = "Zone de disponibilité du sous-réseau 2"
+  type        = string
+  default     = "eu-west-3b"
 }
 
 variable "ssh_key_name" {

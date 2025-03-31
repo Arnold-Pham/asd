@@ -28,22 +28,16 @@ variable "vpc_cidr" {
   default     = "192.168.0.0/16"
 }
 
-variable "subnet_cidrs" {
+variable "subnet_cidr" {
   description = "Liste des plages CIDR pour les sous-réseaux"
-  type        = list(string)
-  default     = ["192.168.0.0/24", "192.168.1.0/24"]
+  type        = string
+  default     = "192.168.0.0/24"
 }
 
-variable "subnet_zone1" {
+variable "subnet_zone" {
   description = "Zone de disponibilité du sous-réseau 1"
   type        = string
   default     = "eu-west-3a"
-}
-
-variable "subnet_zone2" {
-  description = "Zone de disponibilité du sous-réseau 2"
-  type        = string
-  default     = "eu-west-3b"
 }
 
 variable "ssh_key_name" {

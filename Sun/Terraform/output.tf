@@ -13,11 +13,6 @@ output "subnet_1_id" {
   value       = aws_subnet.subnet_1.id
 }
 
-output "subnet_2_id" {
-  description = "ID du deuxième sous-réseau créé (destiné aux machines Cloud)"
-  value       = aws_subnet.subnet_2.id
-}
-
 output "vpc_id" {
   description = "ID du VPC créé"
   value       = aws_vpc.main.id

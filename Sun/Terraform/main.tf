@@ -9,22 +9,11 @@ resource "aws_vpc" "main" {
 resource "aws_subnet" "subnet_1" {
   map_public_ip_on_launch = true
   vpc_id                  = aws_vpc.main.id
-  availability_zone       = var.subnet_zone1
-  cidr_block              = var.subnet_cidrs[0]
+  availability_zone       = var.subnet_zone
+  cidr_block              = var.subnet_cidr
 
   tags = merge(var.common_tags, {
     Name = "Subnet-Public"
-  })
-}
-
-resource "aws_subnet" "subnet_2" {
-  map_public_ip_on_launch = false
-  vpc_id                  = aws_vpc.main.id
-  availability_zone       = var.subnet_zone2
-  cidr_block              = var.subnet_cidrs[1]
-
-  tags = merge(var.common_tags, {
-    Name = "Subnet-Private"
   })
 }
 
@@ -49,26 +38,13 @@ resource "aws_route_table" "route_table_1" {
   })
 }
 
-resource "aws_route_table" "route_table_2" {
-  vpc_id = aws_vpc.main.id
-
-  tags = merge(var.common_tags, {
-    Name = "Route-Private"
-  })
-}
-
 resource "aws_route_table_association" "assoc_1" {
   subnet_id      = aws_subnet.subnet_1.id
   route_table_id = aws_route_table.route_table_1.id
 }
 
-resource "aws_route_table_association" "assoc_2" {
-  subnet_id      = aws_subnet.subnet_2.id
-  route_table_id = aws_route_table.route_table_2.id
-}
-
 resource "aws_security_group" "sun_sg" {
-  name        = "sun-sg-${aws_vpc.main.id}"
+  name        = "sun_sg"
   vpc_id      = aws_vpc.main.id
   description = "Security group pour la machine Sun"
 
