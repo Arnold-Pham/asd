@@ -10,6 +10,24 @@ BOLD="\e[1m"
 set -e
 
 echo -e "\n${BOLD}${BLUE}=============================================${RESET}"
+echo -e "${BOLD}${BLUE}  🚀 Lancement du playbook Ansible  ${RESET}"
+echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
+
+BASE_DIR=$(pwd)
+SSH_FOLDER="$HOME/.ssh"
+ANSIBLE_FOLDER="$BASE_DIR/Sun/Ansible"
+NEW_KEY_PATH="$SSH_FOLDER/sun-key"
+HOSTS_FILE="$ANSIBLE_FOLDER/hosts"
+
+echo -e "${CYAN}📦 Exécution du playbook Ansible...${RESET}\n"
+if ! ansible-playbook -i "$HOSTS_FILE" --private-key "$NEW_KEY_PATH" "$ANSIBLE_FOLDER/destroy.yml" --ssh-common-args="-o StrictHostKeyChecking=accept-new"; then
+    echo -e "${RED}❌ Le playbook Ansible a échoué.${RESET}"
+    exit 1
+fi
+
+echo -e "${GREEN}🎉 Destruction terminé avec succès !${RESET}"
+
+echo -e "\n${BOLD}${BLUE}=============================================${RESET}"
 echo -e "${BOLD}${BLUE}  💥 Destruction de l'instance Terraform  ${RESET}"
 echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
 

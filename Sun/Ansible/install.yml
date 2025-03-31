@@ -17,11 +17,5 @@
         dest: /home/ubuntu/script.sh
         mode: '0755'
 
-    - name: Copier le script de destruction sur Sun
-      copy:
-        src: ./script.sh
-        dest: /home/ubuntu/script.sh
-        mode: '0755'
-
-    - name: Exécuter le script et capturer les logs
+    - name: Exécuter le script
       command: bash /home/ubuntu/script.sh

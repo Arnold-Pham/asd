@@ -1,0 +1,15 @@
+---
+- name: Déployer l'infrastructure sur Cloud
+  remote_user: ubuntu
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Copier le script d'installation sur la machine
+      copy:
+        src: ./script.sh
+        dest: /home/ubuntu/script.sh
+        mode: '0755'
+
+    - name: Exécuter le script
+      command: bash /home/ubuntu/script.sh "{{ inventory_hostname }}"

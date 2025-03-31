@@ -69,6 +69,7 @@ SSH_DIR="/home/ubuntu/.ssh"
 mkdir -p "$SSH_DIR"
 chmod 700 "$SSH_DIR"
 KEY_FILE="$SSH_DIR/cloud-key"
+KEY_FILE_PUB="$SSH_DIR/cloud-key.pub"
 
 if [ ! -f "$KEY_FILE" ]; then
     echo -e "${YELLOW}🛠️ Génération d'une nouvelle clé SSH...${RESET}"
@@ -78,6 +79,9 @@ if [ ! -f "$KEY_FILE" ]; then
 else
     echo -e "${GREEN}✅ La clé SSH existe déjà : $KEY_FILE${RESET}"
 fi
+
+chmod 600 "$KEY_FILE"
+chmod 644 "$KEY_FILE_PUB"
 
 echo -e "\n${BOLD}${BLUE}=============================================${RESET}"
 echo -e "${BOLD}${BLUE}  🌍 Déploiement avec Terraform ${RESET}"

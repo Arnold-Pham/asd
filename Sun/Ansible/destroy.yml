@@ -1,0 +1,15 @@
+---
+- name: Détruire l'infrastructure sur Cloud
+  remote_user: ubuntu
+  hosts: sun
+  become: true
+
+  tasks:
+    - name: Copier le script de destruction sur Sun
+      copy:
+        src: ./destroy.sh
+        dest: /home/ubuntu/destroy.sh
+        mode: '0755'
+
+    - name: Exécuter le script
+      command: bash /home/ubuntu/destroy.sh
