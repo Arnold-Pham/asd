@@ -18,7 +18,7 @@
         mode: '0755'
 
     - name: Exécuter le script et capturer les logs
-      command: bash /home/ubuntu/script.sh $> /home/ubuntu/script.log
+      command: bash /home/ubuntu/script.sh > /home/ubuntu/script.log
       register: script_output
       ignore_errors: true
 
