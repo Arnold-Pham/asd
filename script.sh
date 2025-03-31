@@ -89,6 +89,8 @@ else
     exit 1
 fi
 
+sleep 15
+
 echo -e "\n${BOLD}${BLUE}=============================================${RESET}"
 echo -e "${BOLD}${BLUE}  🚀 Lancement du playbook Ansible  ${RESET}"
 echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
