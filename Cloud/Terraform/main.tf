@@ -188,7 +188,7 @@ resource "aws_iam_instance_profile" "cloud_instance_profile" {
 
 resource "aws_key_pair" "cloud_key" {
   key_name   = var.ssh_key_name
-  public_key = file("~/.ssh/cloud-key.pub")
+  public_key = file("/home/ubuntu/.ssh/cloud-key.pub")
 
   tags = merge(var.common_tags, {
     Name = "Key-Cloud"
