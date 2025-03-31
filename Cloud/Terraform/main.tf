@@ -186,6 +186,15 @@ resource "aws_iam_instance_profile" "cloud_instance_profile" {
   role = aws_iam_role.cloud_role.name
 }
 
+resource "aws_key_pair" "cloud_key" {
+  key_name   = var.ssh_key_name
+  public_key = file("./cloud-key.pub")
+
+  tags = merge(var.common_tags, {
+    Name = "Key-Cloud"
+  })
+}
+
 resource "aws_instance" "cloud_1" {
   depends_on = [aws_security_group.cloud_sg_1]
 
@@ -193,8 +202,8 @@ resource "aws_instance" "cloud_1" {
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.subnet_2.id
   private_ip             = var.private_ips[0]
-  key_name               = var.ssh_key_name
-  security_groups        = [aws_security_group.cloud_sg_1.name]
+  key_name               = aws_key_pair.cloud_key.key_name
+  vpc_security_group_ids = [aws_security_group.cloud_sg_1.id]
   iam_instance_profile   = aws_iam_instance_profile.cloud_instance_profile.name
   
   tags = merge(var.common_tags, {
@@ -209,8 +218,8 @@ resource "aws_instance" "cloud_2" {
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.subnet_2.id
   private_ip             = var.private_ips[1]
-  key_name               = var.ssh_key_name
-  security_groups        = [aws_security_group.cloud_sg_1.name]
+  key_name               = aws_key_pair.cloud_key.key_name
+  vpc_security_group_ids = [aws_security_group.cloud_sg_1.id]
   iam_instance_profile   = aws_iam_instance_profile.cloud_instance_profile.name
   
   tags = merge(var.common_tags, {
@@ -225,8 +234,8 @@ resource "aws_instance" "cloud_3" {
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.subnet_2.id
   private_ip             = var.private_ips[2]
-  key_name               = var.ssh_key_name
-  security_groups        = [aws_security_group.cloud_sg_2.name]
+  key_name               = aws_key_pair.cloud_key.key_name
+  vpc_security_group_ids = [aws_security_group.cloud_sg_2.id]
   iam_instance_profile   = aws_iam_instance_profile.cloud_instance_profile.name
   
   tags = merge(var.common_tags, {
@@ -241,8 +250,8 @@ resource "aws_instance" "cloud_4" {
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.subnet_2.id
   private_ip             = var.private_ips[3]
-  key_name               = var.ssh_key_name
-  security_groups        = [aws_security_group.cloud_sg_3.name]
+  key_name               = aws_key_pair.cloud_key.key_name
+  vpc_security_group_ids = [aws_security_group.cloud_sg_3.id]
   iam_instance_profile   = aws_iam_instance_profile.cloud_instance_profile.name
   
   tags = merge(var.common_tags, {
