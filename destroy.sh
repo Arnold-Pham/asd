@@ -16,21 +16,35 @@ echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
 BASE_DIR=$(pwd)
 TF_FOLDER="$BASE_DIR/Sun/Terraform"
 
-rm "$BASE_DIR/Cloud/Terraform/terraform.tfvars"
+if [ -f "$BASE_DIR/Cloud/Terraform/terraform.tfvars" ]; then
+    rm "$BASE_DIR/Cloud/Terraform/terraform.tfvars"
+    echo -e "${CYAN}[INFO] 🗑️ Fichier terraform.tfvars supprimé.${RESET}"
+else
+    echo -e "${CYAN}[INFO] 🚫 Fichier terraform.tfvars non trouvé, ignorer la suppression.${RESET}"
+fi
 
-echo -e "\n${CYAN}[INFO] 🚧 Destruction de l'instance Terraform en cours...${RESET}"
+echo -e "${CYAN}[INFO] 🚧 Destruction de l'instance Terraform en cours...${RESET}"
 terraform -chdir="$TF_FOLDER" destroy -auto-approve
-echo -e "\n${GREEN}[OK] ✅ Instance Terraform détruite avec succès.${RESET}\n"
+echo -e "${GREEN}[OK] ✅ Instance Terraform détruite avec succès.${RESET}\n"
 
-echo -e "${CYAN}[INFO] 🧹 Nettoyage des fichiers Terraform et clés SSH...${RESET}"
-rm -rf "$TF_FOLDER/.terraform/"
-rm "$TF_FOLDER/.terraform.lock.hcl"
-rm "$TF_FOLDER/sun-key"
-rm "$TF_FOLDER/sun-key.pub"
-rm "$TF_FOLDER/terraform.tfstate"
-rm "$TF_FOLDER/terraform.tfstate.backup"
+echo -e "${CYAN}[INFO] 🧹 Nettoyage des fichiers Terraform et clés SSH...\n${RESET}"
 
-rm -f ./Sun/Ansible/hosts
-rm -f ./Sun/Ansible/script.log
+for file in "$TF_FOLDER/.terraform" "$TF_FOLDER/.terraform.lock.hcl" "$TF_FOLDER/sun-key" "$TF_FOLDER/sun-key.pub" "$TF_FOLDER/terraform.tfstate" "$TF_FOLDER/terraform.tfstate.backup"; do
+    if [ -e "$file" ]; then
+        rm -rf "$file"
+        echo -e "${CYAN}[INFO] 🗑️ $file supprimé.${RESET}"
+    else
+        echo -e "${CYAN}[INFO] 🚫 $file non trouvé, ignorer la suppression.${RESET}"
+    fi
+done
 
-echo -e "\n${GREEN}[OK] 🧑‍💻 Nettoyage terminé avec succès !${RESET}\n"
+for file in ./Sun/Ansible/hosts ./Sun/Ansible/script.log; do
+    if [ -e "$file" ]; then
+        rm -f "$file"
+        echo -e "${CYAN}[INFO] 🗑️ $file supprimé.${RESET}"
+    else
+        echo -e "${CYAN}[INFO] 🚫 $file non trouvé, ignorer la suppression.${RESET}"
+    fi
+done
+
+echo -e "/n${GREEN}[OK] 🧑‍💻 Nettoyage terminé avec succès !${RESET}\n"

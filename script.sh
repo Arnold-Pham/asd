@@ -42,8 +42,10 @@ BASE_DIR=$(pwd)
 TF_FOLDER="$BASE_DIR/Sun/Terraform"
 ANSIBLE_FOLDER="$BASE_DIR/Sun/Ansible"
 KEY_PATH="$TF_FOLDER/sun-key"
+KEY_PATH_PUB="$TF_FOLDER/sun-key.pub"
 SSH_FOLDER="$HOME/.ssh"
 NEW_KEY_PATH="$SSH_FOLDER/sun-key"
+NEW_KEY_PATH_PUB="$SSH_FOLDER/sun-key.pub" 
 HOSTS_FILE="$ANSIBLE_FOLDER/hosts"
 
 if [ ! -f "$KEY_PATH" ]; then
@@ -62,7 +64,7 @@ echo -e "${CYAN}🔄 Initialisation de Terraform...${RESET}"
 terraform -chdir="$TF_FOLDER" init
 
 echo -e "\n${CYAN}🚀 Application du plan Terraform...${RESET}"
-terraform -chdir="$TF_FOLDER" apply -auto-approve
+terraform -chdir="$TF_FOLDER" apply -auto-approve -var-file="$TF_FOLDER/terraform.tfvars.local"
 echo -e "\n${GREEN}✅ Déploiement Terraform terminé.${RESET}"
 
 echo -e "\n${BOLD}${BLUE}=============================================${RESET}"
@@ -89,11 +91,31 @@ else
     exit 1
 fi
 
-sleep 15
+VPC_ID=$(terraform -chdir="$TF_FOLDER" output -raw vpc_id)
+cp "$TF_FOLDER/terraform.tfvars" "$BASE_DIR/Cloud/Terraform/terraform.tfvars"
+echo -e "\nvpc_id         = \"$VPC_ID\"" >> $BASE_DIR/Cloud/Terraform/terraform.tfvars
+
+echo -e "\n${BLUE}=============================================${RESET}"
+echo -e "${BLUE}  🔑 Déplacement des clés pour Ansible  ${RESET}"
+echo -e "${BLUE}=============================================${RESET}\n"
+
+rm -f "$NEW_KEY_PATH" "$NEW_KEY_PATH_PUB"
+mkdir -p "$SSH_FOLDER"
+
+cp "$KEY_PATH" "$SSH_FOLDER/"
+cp "$KEY_PATH_PUB" "$SSH_FOLDER/"
+
+chmod 700 "$SSH_FOLDER"
+chmod 600 "$NEW_KEY_PATH"
+chmod 644 "$NEW_KEY_PATH_PUB"
+
+echo -e "${GREEN}[OK] Déplacement effectué.${RESET}"
 
 echo -e "\n${BOLD}${BLUE}=============================================${RESET}"
 echo -e "${BOLD}${BLUE}  🚀 Lancement du playbook Ansible  ${RESET}"
 echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
+
+sleep 15
 
 echo -e "${CYAN}📦 Exécution du playbook Ansible...${RESET}\n"
 if ! ansible-playbook -i "$HOSTS_FILE" --private-key "$NEW_KEY_PATH" "$ANSIBLE_FOLDER/install.yml" --ssh-common-args="-o StrictHostKeyChecking=accept-new"; then
@@ -103,4 +125,4 @@ fi
 
 echo -e "${GREEN}🎉 Déploiement terminé avec succès !${RESET}\n"
 sleep 5
-ssh -i "$KEY_PATH" ubuntu@$SUN_PUBLIC_IPs
+ssh -i "$KEY_PATH" ubuntu@$SUN_PUBLIC_IP
