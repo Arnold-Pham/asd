@@ -91,7 +91,7 @@ TF_DIR="/home/ubuntu/Cloud/Terraform"
 if [ -d "$TF_DIR" ]; then
     echo -e "\n${CYAN}🛠️ Initialisation de Terraform...${RESET}\n"
     terraform -chdir="$TF_DIR" init
-    
+
     echo -e "\n${CYAN}🚀 Application du plan Terraform...${RESET}\n"
     terraform -chdir="$TF_DIR" apply -auto-approve
 else

@@ -12,4 +12,14 @@
         mode: '0755'
 
     - name: Exécuter le script
-      command: bash /home/ubuntu/script.sh "{{ inventory_hostname }}"
+      command: bash /home/ubuntu/script.sh
+
+    - name: Définir le nouveau hostname
+      hostname:
+        name: "{{ inventory_hostname }}"
+
+    - name: Modifier /etc/hosts
+      replace:
+        path: /etc/hosts
+        regexp: '^(127\.0\.1\.1\s+).*'
+        replace: '\1{{ inventory_hostname }}'

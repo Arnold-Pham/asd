@@ -37,18 +37,18 @@ if ! command -v terraform &> /dev/null; then
     wget -O - https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
     apt update && apt install -y terraform
-    echo -e "\n${GREEN}✅ Terraform installé avec succès.${RESET}\n"
+    echo -e "${GREEN}✅ Terraform installé avec succès.${RESET}\n"
 else
-    echo -e "\n${GREEN}✅ Terraform est déjà installé.${RESET}\n"
+    echo -e "${GREEN}✅ Terraform est déjà installé.${RESET}\n"
 fi
 
 echo -e "${BOLD}${CYAN}🔍 Vérification de Ansible...${RESET}"
 if ! command -v ansible &> /dev/null; then
     echo -e "\n${YELLOW}⚠️  Ansible non trouvé. Installation en cours...${RESET}\n"
     apt update && apt install -y ansible
-    echo -e "\n${GREEN}✅ Ansible installé avec succès.${RESET}\n"
+    echo -e "${GREEN}✅ Ansible installé avec succès.${RESET}\n"
 else
-    echo -e "\n${GREEN}✅ Ansible est déjà installé.${RESET}\n"
+    echo -e "${GREEN}✅ Ansible est déjà installé.${RESET}\n"
 fi
 
 echo -e "\n${BOLD}${BLUE}=============================================${RESET}"
@@ -58,7 +58,7 @@ echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
 if [ ! -f "$KEY_PATH" ]; then
     echo -e "${YELLOW}🔨 Génération d'une nouvelle clé SSH...${RESET}\n"
     ssh-keygen -t rsa -b 4096 -m PEM -C "sun-key" -f "$KEY_PATH" -N ""
-    echo -e "\n${GREEN}✅ Clé SSH générée avec succès.${RESET}\n"
+    echo -e "${GREEN}✅ Clé SSH générée avec succès.${RESET}\n"
 else
     echo -e "${GREEN}🔑 Clé SSH existante : $KEY_PATH${RESET}\n"
 fi
@@ -76,7 +76,7 @@ if [ -f "$LOCAL_VARS" ]; then
 else
     terraform -chdir="$TF_FOLDER" apply -auto-approve
 fi
-echo -e "\n${GREEN}✅ Déploiement Terraform terminé.${RESET}\n"
+echo -e "${GREEN}✅ Déploiement Terraform terminé.${RESET}\n"
 
 echo -e "\n${BOLD}${BLUE}=============================================${RESET}"
 echo -e "${BOLD}${BLUE}  🌐 Récupération de l'IP publique  ${RESET}"
@@ -95,9 +95,9 @@ done
 
 if [ -n "$SUN_PUBLIC_IP" ]; then
     echo -e "[sun]\n$SUN_PUBLIC_IP" > "$HOSTS_FILE"
-    echo -e "\n${GREEN}✅ Fichier d'inventaire Ansible mis à jour.${RESET}\n"
+    echo -e "${GREEN}✅ Fichier d'inventaire Ansible mis à jour.${RESET}\n"
 else
-    echo -e "\n${RED}❌ Impossible de récupérer l'IP publique après plusieurs tentatives.${RESET}"
+    echo -e "${RED}❌ Impossible de récupérer l'IP publique après plusieurs tentatives.${RESET}"
     exit 1
 fi
 
@@ -136,5 +136,7 @@ if ! ansible-playbook -i "$HOSTS_FILE" --private-key "$NEW_KEY_PATH" "$ANSIBLE_F
     echo -e "${RED}❌ Le playbook Ansible a échoué.${RESET}"
     exit 1
 fi
+
+sleep 2
 
 echo -e "${GREEN}🎉 Déploiement terminé avec succès !${RESET}\n"

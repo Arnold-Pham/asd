@@ -44,14 +44,3 @@ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip
 unzip awscliv2.zip
 ./aws/install
 rm awscliv2.zip
-
-NEW_HOSTNAME="$1"
-CURRENT_HOSTNAME=$(hostname)
-if [ "$CURRENT_HOSTNAME" != "$NEW_HOSTNAME" ]; then
-    echo -e "\n${CYAN}🔄 Changement du nom de la machine en '$NEW_HOSTNAME'...${RESET}\n"
-    hostnamectl set-hostname "$NEW_HOSTNAME"
-    sed -i "s/$CURRENT_HOSTNAME/$NEW_HOSTNAME/g" /etc/hosts
-    echo -e "\n${GREEN}✅ Nom de la machine modifié en '$NEW_HOSTNAME'${RESET}"
-else
-    echo -e "\n${GREEN}✅ Le nom de la machine est déjà '$NEW_HOSTNAME'.${RESET}"
-fi
