@@ -54,7 +54,7 @@ variable "ami" {
 variable "iam_policies" {
   description = "Liste des ARN des politiques IAM à attacher au rôle Cloud"
   type        = list(string)
-  default     = [
+  default = [
     "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
     "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
   ]
@@ -63,7 +63,7 @@ variable "iam_policies" {
 variable "common_tags" {
   description = "Tags communs à appliquer à toutes les ressources Cloud"
   type        = map(string)
-  default     = {
+  default = {
     Project   = "Cloud"
     ManagedBy = "Terraform"
   }

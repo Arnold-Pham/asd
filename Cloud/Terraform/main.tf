@@ -162,8 +162,8 @@ resource "aws_iam_role" "cloud_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Action    = "sts:AssumeRole"
-      Effect    = "Allow"
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
       Principal = {
         Service = "ec2.amazonaws.com"
       }
@@ -205,7 +205,7 @@ resource "aws_instance" "cloud_1" {
   key_name               = aws_key_pair.cloud_key.key_name
   vpc_security_group_ids = [aws_security_group.cloud_sg_1.id]
   iam_instance_profile   = aws_iam_instance_profile.cloud_instance_profile.name
-  
+
   tags = merge(var.common_tags, {
     Name = "Cloud-1"
   })
@@ -221,7 +221,7 @@ resource "aws_instance" "cloud_2" {
   key_name               = aws_key_pair.cloud_key.key_name
   vpc_security_group_ids = [aws_security_group.cloud_sg_1.id]
   iam_instance_profile   = aws_iam_instance_profile.cloud_instance_profile.name
-  
+
   tags = merge(var.common_tags, {
     Name = "Cloud-2"
   })
@@ -237,7 +237,7 @@ resource "aws_instance" "cloud_3" {
   key_name               = aws_key_pair.cloud_key.key_name
   vpc_security_group_ids = [aws_security_group.cloud_sg_2.id]
   iam_instance_profile   = aws_iam_instance_profile.cloud_instance_profile.name
-  
+
   tags = merge(var.common_tags, {
     Name = "Cloud-3"
   })
@@ -253,7 +253,7 @@ resource "aws_instance" "cloud_4" {
   key_name               = aws_key_pair.cloud_key.key_name
   vpc_security_group_ids = [aws_security_group.cloud_sg_3.id]
   iam_instance_profile   = aws_iam_instance_profile.cloud_instance_profile.name
-  
+
   tags = merge(var.common_tags, {
     Name = "Cloud-4"
   })
