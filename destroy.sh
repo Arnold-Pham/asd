@@ -12,8 +12,8 @@ BASE_DIR=$(pwd)
 TF_FOLDER="$BASE_DIR/Sun/Terraform"
 LOCAL_VARS="$TF_FOLDER/terraform.tfvars.local"
 
-HOSTS_FILE="$ANSIBLE_FOLDER/hosts"
 ANSIBLE_FOLDER="$BASE_DIR/Sun/Ansible"
+HOSTS_FILE="$ANSIBLE_FOLDER/hosts"
 
 SSH_FOLDER="$HOME/.ssh"
 NEW_KEY_PATH="$SSH_FOLDER/sun-key"

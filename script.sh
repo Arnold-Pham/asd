@@ -25,6 +25,8 @@ NEW_KEY_PATH_PUB="$SSH_FOLDER/sun-key.pub"
 
 set -e
 
+apt update && apt upgrade -y
+
 echo -e "${BOLD}${BLUE}=============================================${RESET}"
 echo -e "${BOLD}${BLUE}  🚀 Initialisation du déploiement  ${RESET}"
 echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
@@ -32,9 +34,9 @@ echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
 echo -e "${BOLD}${CYAN}🔍 Vérification de Terraform...${RESET}"
 if ! command -v terraform &> /dev/null; then
     echo -e "\n${YELLOW}⚠️  Terraform non trouvé. Installation en cours...${RESET}\n"
-    wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-    sudo apt update && sudo apt install -y terraform
+    wget -O - https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
+    apt update && apt install -y terraform
     echo -e "\n${GREEN}✅ Terraform installé avec succès.${RESET}\n"
 else
     echo -e "\n${GREEN}✅ Terraform est déjà installé.${RESET}\n"
@@ -43,7 +45,7 @@ fi
 echo -e "${BOLD}${CYAN}🔍 Vérification de Ansible...${RESET}"
 if ! command -v ansible &> /dev/null; then
     echo -e "\n${YELLOW}⚠️  Ansible non trouvé. Installation en cours...${RESET}\n"
-    sudo apt update && sudo apt install -y ansible
+    apt update && apt install -y ansible
     echo -e "\n${GREEN}✅ Ansible installé avec succès.${RESET}\n"
 else
     echo -e "\n${GREEN}✅ Ansible est déjà installé.${RESET}\n"
@@ -129,7 +131,7 @@ echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
 
 sleep 15
 
-echo -e "${CYAN}📦 Exécution du playbook Ansible...${RESET}\n"
+echo -e "${CYAN}📦 Exécution du playbook Ansible...${RESET}"
 if ! ansible-playbook -i "$HOSTS_FILE" --private-key "$NEW_KEY_PATH" "$ANSIBLE_FOLDER/install.yml" --ssh-common-args="-o StrictHostKeyChecking=accept-new"; then
     echo -e "${RED}❌ Le playbook Ansible a échoué.${RESET}"
     exit 1
