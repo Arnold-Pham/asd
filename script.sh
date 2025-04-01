@@ -95,7 +95,7 @@ if [ -n "$SUN_PUBLIC_IP" ]; then
     echo -e "[sun]\n$SUN_PUBLIC_IP" > "$HOSTS_FILE"
     echo -e "\n${GREEN}✅ Fichier d'inventaire Ansible mis à jour.${RESET}\n"
 else
-    echo -e "\n${RED}❌ Impossible de récupérer l'IP publique après plusieurs tentatives.${RESET}\n"
+    echo -e "\n${RED}❌ Impossible de récupérer l'IP publique après plusieurs tentatives.${RESET}"
     exit 1
 fi
 
