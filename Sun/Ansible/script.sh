@@ -52,13 +52,13 @@ sudo ./aws/install
 rm awscliv2.zip
 
 CURRENT_HOSTNAME=$(hostname)
-if [ "$CURRENT_HOSTNAME" != "Sun" ]; then
-    echo -e "$\n{CYAN}🔄 Changement du nom de la machine en 'Sun'...${RESET}"
-    sudo hostnamectl set-hostname Sun
-    sudo sed -i "s/$CURRENT_HOSTNAME/Sun/g" /etc/hosts
-    echo -e "\n${GREEN}✅ Nom de la machine modifié en 'Sun'${RESET}"
+if [ "$CURRENT_HOSTNAME" != "sun" ]; then
+    echo -e "$\n{CYAN}🔄 Changement du nom de la machine en 'sun'...${RESET}"
+    sudo hostnamectl set-hostname sun
+    sudo sed -i "s/$CURRENT_HOSTNAME/sun/g" /etc/hosts
+    echo -e "\n${GREEN}✅ Nom de la machine modifié en 'sun'${RESET}"
 else
-    echo -e "\n${GREEN}✅ Le nom de la machine est déjà 'Sun'.${RESET}"
+    echo -e "\n${GREEN}✅ Le nom de la machine est déjà 'sun'.${RESET}"
 fi
 
 echo -e "\n${BOLD}${BLUE}=============================================${RESET}"
