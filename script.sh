@@ -8,6 +8,13 @@ CYAN="\e[36m"
 BOLD="\e[1m"
 RESET="\e[0m"
 
+set -e
+
+if [ "$(id -u)" -ne 0 ]; then
+    echo -e "\n${BOLD}${RED} ❌  SCRIPT A EXECUTER EN TANT QUE ROOT OU AVEC SUDO  ❌ ${RESET}\n"
+    exit 1
+fi
+
 BASE_DIR=$(pwd)
 SUN_PUBLIC_IP=""
 
@@ -22,8 +29,6 @@ HOSTS_FILE="$ANSIBLE_FOLDER/hosts"
 SSH_FOLDER="$HOME/.ssh"
 NEW_KEY_PATH="$SSH_FOLDER/sun-key"
 NEW_KEY_PATH_PUB="$SSH_FOLDER/sun-key.pub"
-
-set -e
 
 apt update && apt upgrade -y
 

@@ -7,6 +7,13 @@ CYAN="\e[36m"
 RESET="\e[0m"
 BOLD="\e[1m"
 
+set -e
+
+if [ "$(id -u)" -ne 0 ]; then
+    echo -e "\n${BOLD}${RED} ❌  SCRIPT A EXECUTER EN TANT QUE ROOT OU AVEC SUDO  ❌ ${RESET}\n"
+    exit 1
+fi
+
 BASE_DIR=$(pwd)
 
 TF_FOLDER="$BASE_DIR/Sun/Terraform"
@@ -17,8 +24,6 @@ HOSTS_FILE="$ANSIBLE_FOLDER/hosts"
 
 SSH_FOLDER="$HOME/.ssh"
 NEW_KEY_PATH="$SSH_FOLDER/sun-key"
-
-set -e
 
 echo -e "${BOLD}${BLUE}=============================================${RESET}"
 echo -e "${BOLD}${BLUE}  🚀 Lancement du playbook Ansible  ${RESET}"
