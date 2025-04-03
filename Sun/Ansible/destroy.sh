@@ -10,8 +10,6 @@ BOLD="\e[1m"
 BASE_DIR=$(pwd)
 TF_FOLDER="$BASE_DIR/Cloud/Terraform"
 
-set -e
-
 echo -e "${BOLD}${BLUE}=============================================${RESET}"
 echo -e "${BOLD}${BLUE}  💥 Destruction des instances Terraform  ${RESET}"
 echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
