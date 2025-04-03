@@ -78,6 +78,20 @@ resource "aws_security_group" "sun_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    description = "K3s API (Port 6443)"
+    from_port   = 6443
+    to_port     = 6443
+    protocol    = "tcp"
+    cidr_blocks = [
+      "192.168.0.10/32",
+      "192.168.1.11/32",
+      "192.168.1.12/32",
+      "192.168.1.13/32",
+      "192.168.1.14/32"
+    ]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
