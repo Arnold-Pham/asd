@@ -34,16 +34,6 @@
     - name: Exécuter le script
       command: bash /home/ubuntu/script.sh
 
-    - name: Définir le nouveau hostname
-      hostname:
-        name: "{{ inventory_hostname }}"
-
-    - name: Modifier /etc/hosts
-      replace:
-        path: /etc/hosts
-        regexp: '^(127\.0\.1\.1\s+).*'
-        replace: '\1{{ inventory_hostname }}'
-
     - name: Install K3s agent
       shell: |
         curl -sfL https://get.k3s.io | K3S_URL="https://192.168.0.10:6443" K3S_TOKEN="{{ hostvars['sun']['k3s_token'].stdout }}" sh -

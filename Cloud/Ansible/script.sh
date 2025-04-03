@@ -8,6 +8,9 @@ CYAN="\e[36m"
 BOLD="\e[1m"
 RESET="\e[0m"
 
+TARGET_HOSTNAME=$1
+CURRENT_HOSTNAME=$(hostname)
+
 echo -e "${BOLD}${BLUE}=============================================${RESET}"
 echo -e "${BOLD}${BLUE}  🚀 Mise à jour et installation des outils ${RESET}"
 echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
@@ -44,3 +47,12 @@ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip
 unzip awscliv2.zip
 ./aws/install
 rm awscliv2.zip
+
+if [ "$CURRENT_HOSTNAME" != "$TARGET_HOSTNAME" ]; then
+    echo -e "\n${CYAN}🔄 Changement du nom de la machine en '$TARGET_HOSTNAME'...${RESET}\n"
+    hostnamectl set-hostname "$TARGET_HOSTNAME"
+    sed -i "s/$CURRENT_HOSTNAME/$TARGET_HOSTNAME/g" /etc/hosts
+    echo -e "\n${GREEN}✅ Nom de la machine modifié en '$TARGET_HOSTNAME'${RESET}\n"
+else
+    echo -e "\n${GREEN}✅ Le nom de la machine est déjà '$TARGET_HOSTNAME'.${RESET}\n"
+fi
