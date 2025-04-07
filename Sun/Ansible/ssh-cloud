@@ -1,0 +1,19 @@
+Host cloud1
+    HostName 192.168.1.10
+    User ubuntu
+    IdentityFile ~/.ssh/cloud-key-1
+
+Host cloud2
+    HostName 192.168.2.10
+    User ubuntu
+    IdentityFile ~/.ssh/cloud-key-2
+
+Host cloud3
+    HostName 192.168.3.10
+    User ubuntu
+    IdentityFile ~/.ssh/cloud-key-3
+
+Host cloud4
+    HostName 192.168.4.10
+    User ubuntu
+    IdentityFile ~/.ssh/cloud-key-4

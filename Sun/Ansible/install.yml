@@ -17,5 +17,12 @@
         dest: /home/ubuntu/script.sh
         mode: '0755'
 
+    - name: Copier la connexion rapide ssh
+      copy:
+        src: ./ssh-cloud
+        dest: /home/ubuntu/.ssh/config
+        mode: '0755'
+
     - name: Exécuter le script
-      command: bash /home/ubuntu/script.sh
+      command: /home/ubuntu/script.sh
+
