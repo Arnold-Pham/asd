@@ -9,9 +9,9 @@ output "sun_public_ip" {
   value       = aws_instance.sun.public_ip
 }
 
-output "subnet_1_id" {
+output "subnet_id" {
   description = "ID du premier sous-réseau créé"
-  value       = aws_subnet.subnet_1.id
+  value       = aws_subnet.subnet.id
   sensitive   = true
 }
 
@@ -29,7 +29,7 @@ output "internet_gateway_id" {
 
 output "route_table_id" {
   description = "ID de la table de routage associée au sous-réseau 1"
-  value       = aws_route_table.route_table_1.id
+  value       = aws_route_table.route_table.id
   sensitive   = true
 }
 

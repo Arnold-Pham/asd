@@ -28,10 +28,16 @@ variable "vpc_cidr" {
   default     = "192.168.0.0/16"
 }
 
+variable "subnet_name" {
+  description = "Liste des plages CIDR pour les sous-réseaux"
+  type        = string
+  default     = "Principale"
+}
+
 variable "subnet_cidr" {
   description = "Liste des plages CIDR pour les sous-réseaux"
   type        = string
-  default     = "192.168.0.0/24"
+  default     = "192.168.0.0/26"
 }
 
 variable "subnet_zone" {
@@ -56,7 +62,7 @@ variable "iam_policies" {
   description = "Liste des ARN des politiques IAM à attacher au rôle Sun"
   type        = list(string)
   default = [
-    "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
+    "arn:aws:iam::aws:policy/AmazonEC2FullAccess",
     "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
   ]
 }

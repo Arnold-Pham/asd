@@ -4,18 +4,18 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
 
   tags = merge(var.common_tags, {
-    Name = "VPC-Sun"
+    Name = "VPC-DevOps"
   })
 }
 
-resource "aws_subnet" "subnet_1" {
+resource "aws_subnet" "subnet" {
   map_public_ip_on_launch = true
   vpc_id                  = aws_vpc.main.id
   availability_zone       = var.subnet_zone
   cidr_block              = var.subnet_cidr
 
   tags = merge(var.common_tags, {
-    Name = "Subnet-Public"
+    Name = "Subnet-${var.subnet_name}"
   })
 }
 
@@ -27,7 +27,7 @@ resource "aws_internet_gateway" "gw" {
   })
 }
 
-resource "aws_route_table" "route_table_1" {
+resource "aws_route_table" "route_table" {
   vpc_id = aws_vpc.main.id
 
   route {
@@ -41,8 +41,8 @@ resource "aws_route_table" "route_table_1" {
 }
 
 resource "aws_route_table_association" "assoc_1" {
-  subnet_id      = aws_subnet.subnet_1.id
-  route_table_id = aws_route_table.route_table_1.id
+  subnet_id      = aws_subnet.subnet.id
+  route_table_id = aws_route_table.route_table.id
 }
 
 resource "aws_security_group" "sun_sg" {
@@ -83,13 +83,7 @@ resource "aws_security_group" "sun_sg" {
     from_port   = 6443
     to_port     = 6443
     protocol    = "tcp"
-    cidr_blocks = [
-      "192.168.0.10/32",
-      "192.168.1.11/32",
-      "192.168.1.12/32",
-      "192.168.1.13/32",
-      "192.168.1.14/32"
-    ]
+    cidr_blocks = ["192.168.0.0/16"]
   }
 
   egress {
@@ -102,10 +96,10 @@ resource "aws_security_group" "sun_sg" {
 
 resource "aws_key_pair" "sun_key" {
   key_name   = var.ssh_key_name
-  public_key = file("sun-key.pub")
+  public_key = file("~/.ssh/sun-key.pub")
 
   tags = merge(var.common_tags, {
-    Name = "Key-Sun"
+    Name = "sun-key"
   })
 }
 
@@ -124,7 +118,7 @@ resource "aws_iam_role" "sun_role" {
   })
 
   tags = merge(var.common_tags, {
-    Name = "IAM-Role-Sun"
+    Name = "Sun-IAM-Role"
   })
 }
 
@@ -149,12 +143,12 @@ resource "aws_instance" "sun" {
   private_ip                  = "192.168.0.10"
   ami                         = var.ami
   instance_type               = var.instance_type
-  subnet_id                   = aws_subnet.subnet_1.id
+  subnet_id                   = aws_subnet.subnet.id
   iam_instance_profile        = aws_iam_instance_profile.sun_instance_profile.name
   key_name                    = aws_key_pair.sun_key.key_name
   vpc_security_group_ids      = [aws_security_group.sun_sg.id]
 
   tags = merge(var.common_tags, {
-    Name = "Sun"
+    Name = "sun"
   })
 }
