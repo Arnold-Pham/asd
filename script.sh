@@ -15,20 +15,17 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-BASE_DIR=$(pwd)
+BASE=$(pwd)
 SUN_PUBLIC_IP=""
-
-TF_FOLDER="$BASE_DIR/Sun/Terraform"
-KEY_PATH="$TF_FOLDER/sun-key"
-KEY_PATH_PUB="$TF_FOLDER/sun-key.pub"
+TF_FOLDER="$BASE/Sun/Terraform"
+NORMAL_VARS="$TF_FOLDER/terraform.tfvars"
 LOCAL_VARS="$TF_FOLDER/terraform.tfvars.local"
-
-ANSIBLE_FOLDER="$BASE_DIR/Sun/Ansible"
-HOSTS_FILE="$ANSIBLE_FOLDER/hosts"
-
+AN_FOLDER="$BASE/Sun/Ansible"
+HOSTS_FILE="$AN_FOLDER/hosts"
 SSH_FOLDER="$HOME/.ssh"
-NEW_KEY_PATH="$SSH_FOLDER/sun-key"
-NEW_KEY_PATH_PUB="$SSH_FOLDER/sun-key.pub"
+SUN_KEY="$SSH_FOLDER/sun-key"
+SUN_KEY_PUB="$SSH_FOLDER/sun-key.pub"
+CLOUD_VARS="$BASE/Cloud/Terraform/terraform.tfvars"
 
 apt update && apt upgrade -y
 
@@ -43,30 +40,40 @@ if ! command -v terraform &> /dev/null; then
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
     apt update && apt install -y terraform
     echo -e "${GREEN}✅ Terraform installé avec succès.${RESET}\n"
+    sleep 2
 else
     echo -e "${GREEN}✅ Terraform est déjà installé.${RESET}\n"
 fi
+
 
 echo -e "${BOLD}${CYAN}🔍 Vérification de Ansible...${RESET}"
 if ! command -v ansible &> /dev/null; then
     echo -e "\n${YELLOW}⚠️  Ansible non trouvé. Installation en cours...${RESET}\n"
     apt update && apt install -y ansible
     echo -e "${GREEN}✅ Ansible installé avec succès.${RESET}\n"
+    sleep 2
 else
     echo -e "${GREEN}✅ Ansible est déjà installé.${RESET}\n"
 fi
+
 
 echo -e "\n${BOLD}${BLUE}=============================================${RESET}"
 echo -e "${BOLD}${BLUE}  🔑 Configuration des clés SSH  ${RESET}"
 echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
 
-if [ ! -f "$KEY_PATH" ]; then
+chmod 700 "$SSH_FOLDER"
+
+if [ ! -f "$SUN_KEY" ]; then
     echo -e "${YELLOW}🔨 Génération d'une nouvelle clé SSH...${RESET}\n"
-    ssh-keygen -t rsa -b 4096 -m PEM -C "sun-key" -f "$KEY_PATH" -N ""
+    ssh-keygen -t rsa -b 4096 -m PEM -C "sun-key" -f "$SUN_KEY" -N ""
     echo -e "${GREEN}✅ Clé SSH générée avec succès.${RESET}\n"
+    sleep 2
 else
-    echo -e "${GREEN}🔑 Clé SSH existante : $KEY_PATH${RESET}\n"
+    echo -e "${GREEN}🔑 Clé SSH existante : ${$SUN_KEY}${RESET}\n"
 fi
+
+chmod 600 "$SUN_KEY"
+chmod 644 "$SUN_KEY_PUB"
 
 echo -e "\n${BOLD}${BLUE}=============================================${RESET}"
 echo -e "${BOLD}${BLUE}  🌍 Déploiement de l'instance AWS  ${RESET}"
@@ -78,8 +85,12 @@ terraform -chdir="$TF_FOLDER" init
 echo -e "\n${CYAN}🚀 Application du plan Terraform...${RESET}\n"
 if [ -f "$LOCAL_VARS" ]; then
     terraform -chdir="$TF_FOLDER" apply -auto-approve -var-file="$LOCAL_VARS"
+    sleep 2
+    cp "$LOCAL_VARS" "$CLOUD_VARS"
 else
     terraform -chdir="$TF_FOLDER" apply -auto-approve
+    sleep 2
+    cp "$NORMAL_VARS" "$CLOUD_VARS"
 fi
 echo -e "${GREEN}✅ Déploiement Terraform terminé.${RESET}\n"
 
@@ -106,42 +117,20 @@ else
     exit 1
 fi
 
-VPC_ID=$(terraform -chdir="$TF_FOLDER" output -raw vpc_id)
-if [ -f "$LOCAL_VARS" ]; then
-    cp "$LOCAL_VARS" "$BASE_DIR/Cloud/Terraform/terraform.tfvars"
-else
-    cp "$TF_FOLDER/terraform.tfvars" "$BASE_DIR/Cloud/Terraform/terraform.tfvars"
-fi
-echo -e "\nvpc_id         = \"$VPC_ID\"" >> $BASE_DIR/Cloud/Terraform/terraform.tfvars
+echo -e "\nvpc_id         = \"$(terraform -chdir="$TF_FOLDER" output -raw vpc_id)\"" >> "$CLOUD_VARS"
 
-echo -e "\n\n${BLUE}=============================================${RESET}"
-echo -e "${BLUE}  🔑 Déplacement des clés pour Ansible  ${RESET}"
-echo -e "${BLUE}=============================================${RESET}\n"
+# echo -e "\n${BOLD}${BLUE}=============================================${RESET}"
+# echo -e "${BOLD}${BLUE}  🚀 Lancement du playbook Ansible  ${RESET}"
+# echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
 
-rm -f "$NEW_KEY_PATH" "$NEW_KEY_PATH_PUB"
-mkdir -p "$SSH_FOLDER"
+# sleep 5
 
-cp "$KEY_PATH" "$SSH_FOLDER/"
-cp "$KEY_PATH_PUB" "$SSH_FOLDER/"
+# echo -e "${CYAN}📦 Exécution du playbook Ansible...${RESET}"
+# if ! ansible-playbook -i "$HOSTS_FILE" --private-key "$SUN_KEY" "$AN_FOLDER/install.yml" --ssh-common-args="-o StrictHostKeyChecking=accept-new"; then
+#     echo -e "${RED}❌ Le playbook Ansible a échoué.${RESET}"
+#     exit 1
+# fi
 
-chmod 700 "$SSH_FOLDER"
-chmod 600 "$NEW_KEY_PATH"
-chmod 644 "$NEW_KEY_PATH_PUB"
+# sleep 2
 
-echo -e "${GREEN}[OK] Déplacement effectué.${RESET}\n"
-
-echo -e "\n${BOLD}${BLUE}=============================================${RESET}"
-echo -e "${BOLD}${BLUE}  🚀 Lancement du playbook Ansible  ${RESET}"
-echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
-
-sleep 15
-
-echo -e "${CYAN}📦 Exécution du playbook Ansible...${RESET}"
-if ! ansible-playbook -i "$HOSTS_FILE" --private-key "$NEW_KEY_PATH" "$ANSIBLE_FOLDER/install.yml" --ssh-common-args="-o StrictHostKeyChecking=accept-new"; then
-    echo -e "${RED}❌ Le playbook Ansible a échoué.${RESET}"
-    exit 1
-fi
-
-sleep 2
-
-echo -e "${GREEN}🎉 Déploiement terminé avec succès !${RESET}\n"
+# echo -e "${GREEN}🎉 Déploiement terminé avec succès !${RESET}\n"
