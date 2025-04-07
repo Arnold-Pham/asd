@@ -21,7 +21,7 @@
 
 - name: Déployer l'infrastructure sur Cloud
   remote_user: ubuntu
-  hosts: one,two,thr
+  hosts: cloud
   become: true
 
   tasks:
