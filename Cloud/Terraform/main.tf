@@ -1,35 +1,43 @@
-resource "aws_subnet" "subnet_2" {
-  map_public_ip_on_launch = true
+resource "aws_subnet" "subnet" {
+  for_each = {
+    for idx, name in var.subnet_names : 
+    name => {
+      cidr_block        = var.subnet_cidrs[idx]
+      availability_zone = var.subnet_zones[idx]
+    }
+  }
+
   vpc_id                  = var.vpc_id
-  availability_zone       = var.subnet_zone
-  cidr_block              = var.subnet_cidr
+  cidr_block              = each.value.cidr_block
+  availability_zone       = each.value.availability_zone
+  map_public_ip_on_launch = true
 
   tags = merge(var.common_tags, {
-    Name = "Subnet-Private"
+    Name = "Subnet-${each.key}"
   })
 }
 
-resource "aws_route_table" "route_table_2" {
+resource "aws_route_table" "route_table" {
+  for_each = toset(var.subnet_names)
+
   vpc_id = var.vpc_id
 
   tags = merge(var.common_tags, {
-    Name = "Route-Private"
+    Name = "Route-${each.key}"
   })
 }
 
-resource "aws_route_table_association" "assoc_2" {
-  subnet_id      = aws_subnet.subnet_2.id
-  route_table_id = aws_route_table.route_table_2.id
+resource "aws_route_table_association" "assoc" {
+  for_each = toset(var.subnet_names)
+
+  subnet_id      = aws_subnet.subnet[each.key].id
+  route_table_id = aws_route_table.route_table[each.key].id
 }
 
 resource "aws_security_group" "cloud_sg_1" {
   name        = "cloud_sg_1"
-  description = "Security Group pour Cloud-1 et Cloud-2 (80, 443)"
+  description = "Security Group pour machines prod"
   vpc_id      = var.vpc_id
-
-  tags = merge(var.common_tags, {
-    Name = "Security-Group-Cloud1"
-  })
 
   ingress {
     description = "HTTP"
@@ -62,16 +70,58 @@ resource "aws_security_group" "cloud_sg_1" {
     protocol    = "icmp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = merge(var.common_tags, {
+    Name = "SG-cloud-1"
+  })
 }
 
 resource "aws_security_group" "cloud_sg_2" {
   name        = "cloud_sg_2"
-  description = "Security Group pour Cloud-3 (3000, 4317, 4318)"
+  description = "Security Group pour gestion"
   vpc_id      = var.vpc_id
 
+  ingress {
+    description = "Jenkins"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "SonarQube"
+    from_port   = 9000
+    to_port     = 9000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "ICMP"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags = merge(var.common_tags, {
-    Name = "Security-Group-Cloud2"
+    Name = "SG-cloud-2"
   })
+}
+
+resource "aws_security_group" "cloud_sg_3" {
+  name        = "cloud_sg_3"
+  description = "Security Group pour metriques"
+  vpc_id      = var.vpc_id
 
   ingress {
     description = "Grafana"
@@ -112,29 +162,29 @@ resource "aws_security_group" "cloud_sg_2" {
     protocol    = "icmp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-}
-
-resource "aws_security_group" "cloud_sg_3" {
-  name        = "cloud_sg_3"
-  description = "Security Group pour Cloud-4 (8080, 9000)"
-  vpc_id      = var.vpc_id
 
   tags = merge(var.common_tags, {
-    Name = "Security-Group-Cloud3"
+    Name = "SG-cloud-3"
   })
+}
+
+resource "aws_security_group" "cloud_sg_4" {
+  name        = "cloud_sg_4"
+  description = "Security Group pour donnees"
+  vpc_id      = var.vpc_id
 
   ingress {
-    description = "Jenkins"
-    from_port   = 8080
-    to_port     = 8080
+    description = "BDD"
+    from_port   = 5432
+    to_port     = 5432
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    description = "SonarQube"
-    from_port   = 9000
-    to_port     = 9000
+    description = "BDD"
+    from_port   = 3306
+    to_port     = 3306
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -154,6 +204,10 @@ resource "aws_security_group" "cloud_sg_3" {
     protocol    = "icmp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = merge(var.common_tags, {
+    Name = "SG-cloud-4"
+  })
 }
 
 resource "aws_iam_role" "cloud_role" {
@@ -186,23 +240,48 @@ resource "aws_iam_instance_profile" "cloud_instance_profile" {
   role = aws_iam_role.cloud_role.name
 }
 
-resource "aws_key_pair" "cloud_key" {
-  key_name   = var.ssh_key_name
-  public_key = file("/home/ubuntu/.ssh/cloud-key.pub")
+resource "aws_key_pair" "cloud_key_1" {
+  key_name   = "cloud-key-1"
+  public_key = file("/home/ubuntu/.ssh/cloud-key-1.pub")
 
   tags = merge(var.common_tags, {
-    Name = "Key-Cloud"
+    Name = "cloud-key-1"
+  })
+}
+
+resource "aws_key_pair" "cloud_key_2" {
+  key_name   = "cloud-key-2"
+  public_key = file("/home/ubuntu/.ssh/cloud-key-2.pub")
+
+  tags = merge(var.common_tags, {
+    Name = "cloud-key-2"
+  })
+}
+
+resource "aws_key_pair" "cloud_key_3" {
+  key_name   = "cloud-key-3"
+  public_key = file("/home/ubuntu/.ssh/cloud-key-3.pub")
+
+  tags = merge(var.common_tags, {
+    Name = "cloud-key-3"
+  })
+}
+
+resource "aws_key_pair" "cloud_key_4" {
+  key_name   = "cloud-key-4"
+  public_key = file("/home/ubuntu/.ssh/cloud-key-4.pub")
+
+  tags = merge(var.common_tags, {
+    Name = "cloud-key-4"
   })
 }
 
 resource "aws_instance" "cloud_1" {
-  depends_on = [aws_security_group.cloud_sg_1]
-
   ami                    = var.ami
   instance_type          = var.instance_type
-  subnet_id              = aws_subnet.subnet_2.id
+  subnet_id              = aws_subnet.subnet["${var.subnet_names[0]}"].id
   private_ip             = var.private_ips[0]
-  key_name               = aws_key_pair.cloud_key.key_name
+  key_name               = aws_key_pair.cloud_key_1.key_name
   vpc_security_group_ids = [aws_security_group.cloud_sg_1.id]
   iam_instance_profile   = aws_iam_instance_profile.cloud_instance_profile.name
 
@@ -212,14 +291,12 @@ resource "aws_instance" "cloud_1" {
 }
 
 resource "aws_instance" "cloud_2" {
-  depends_on = [aws_security_group.cloud_sg_1]
-
   ami                    = var.ami
   instance_type          = var.instance_type
-  subnet_id              = aws_subnet.subnet_2.id
+  subnet_id              = aws_subnet.subnet["${var.subnet_names[1]}"].id
   private_ip             = var.private_ips[1]
-  key_name               = aws_key_pair.cloud_key.key_name
-  vpc_security_group_ids = [aws_security_group.cloud_sg_1.id]
+  key_name               = aws_key_pair.cloud_key_2.key_name
+  vpc_security_group_ids = [aws_security_group.cloud_sg_2.id]
   iam_instance_profile   = aws_iam_instance_profile.cloud_instance_profile.name
 
   tags = merge(var.common_tags, {
@@ -228,14 +305,12 @@ resource "aws_instance" "cloud_2" {
 }
 
 resource "aws_instance" "cloud_3" {
-  depends_on = [aws_security_group.cloud_sg_2]
-
   ami                    = var.ami
   instance_type          = var.instance_type
-  subnet_id              = aws_subnet.subnet_2.id
+  subnet_id              = aws_subnet.subnet["${var.subnet_names[2]}"].id
   private_ip             = var.private_ips[2]
-  key_name               = aws_key_pair.cloud_key.key_name
-  vpc_security_group_ids = [aws_security_group.cloud_sg_2.id]
+  key_name               = aws_key_pair.cloud_key_3.key_name
+  vpc_security_group_ids = [aws_security_group.cloud_sg_3.id]
   iam_instance_profile   = aws_iam_instance_profile.cloud_instance_profile.name
 
   tags = merge(var.common_tags, {
@@ -244,14 +319,12 @@ resource "aws_instance" "cloud_3" {
 }
 
 resource "aws_instance" "cloud_4" {
-  depends_on = [aws_security_group.cloud_sg_3]
-
   ami                    = var.ami
   instance_type          = var.instance_type
-  subnet_id              = aws_subnet.subnet_2.id
+  subnet_id              = aws_subnet.subnet["${var.subnet_names[3]}"].id
   private_ip             = var.private_ips[3]
-  key_name               = aws_key_pair.cloud_key.key_name
-  vpc_security_group_ids = [aws_security_group.cloud_sg_3.id]
+  key_name               = aws_key_pair.cloud_key_4.key_name
+  vpc_security_group_ids = [aws_security_group.cloud_sg_4.id]
   iam_instance_profile   = aws_iam_instance_profile.cloud_instance_profile.name
 
   tags = merge(var.common_tags, {

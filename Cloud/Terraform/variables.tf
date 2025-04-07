@@ -27,22 +27,22 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "subnet_cidr" {
+variable "subnet_names" {
+  description = "Nom des sous-réseaux"
+  type        = list(string)
+  default     = ["Production", "Gestion", "Metriques", "Donnees", "Developpement", "Test"]
+}
+
+variable "subnet_cidrs" {
   description = "Liste des plages CIDR pour les sous-réseaux"
-  type        = string
-  default     = "192.168.1.0/24"
+  type        = list(string)
+  default     = ["192.168.1.0/26", "192.168.2.0/26", "192.168.3.0/26", "192.168.4.0/26", "192.168.5.0/26", "192.168.6.0/26"]
 }
 
-variable "subnet_zone" {
-  description = "Zone de disponibilité du sous-réseau 2"
-  type        = string
-  default     = "eu-west-3b"
-}
-
-variable "ssh_key_name" {
-  description = "Nom de la clé SSH pour l'accès aux machines Cloud"
-  type        = string
-  default     = "cloud-key"
+variable "subnet_zones" {
+  description = "Zones de disponibilité des sous-réseaux"
+  type        = list(string)
+  default     = ["eu-west-3a", "eu-west-3b", "eu-west-3c", "eu-west-3a", "eu-west-3b", "eu-west-3c"]
 }
 
 variable "ami" {
@@ -72,7 +72,7 @@ variable "common_tags" {
 variable "private_ips" {
   description = "Liste des IPs privées à assigner aux instances Cloud"
   type        = list(string)
-  default     = ["192.168.1.11", "192.168.1.12", "192.168.1.13", "192.168.1.14"]
+  default     = ["192.168.1.10", "192.168.2.10", "192.168.3.10", "192.168.4.10"]
 }
 
 resource "random_id" "suffix" {
