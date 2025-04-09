@@ -71,6 +71,13 @@ resource "aws_security_group" "cloud_sg_1" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags = merge(var.common_tags, {
     Name = "SG-cloud-1"
   })
@@ -113,6 +120,13 @@ resource "aws_security_group" "cloud_sg_2" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  
   tags = merge(var.common_tags, {
     Name = "SG-cloud-2"
   })
@@ -163,6 +177,13 @@ resource "aws_security_group" "cloud_sg_3" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags = merge(var.common_tags, {
     Name = "SG-cloud-3"
   })
@@ -205,6 +226,13 @@ resource "aws_security_group" "cloud_sg_4" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags = merge(var.common_tags, {
     Name = "SG-cloud-4"
   })
@@ -240,39 +268,12 @@ resource "aws_iam_instance_profile" "cloud_instance_profile" {
   role = aws_iam_role.cloud_role.name
 }
 
-resource "aws_key_pair" "cloud_key_1" {
-  key_name   = "cloud-key-1"
-  public_key = file("/home/ubuntu/.ssh/cloud-key-1.pub")
+resource "aws_key_pair" "cloud_key" {
+  key_name   = "key-cloud"
+  public_key = file("/home/ubuntu/.ssh/key-cloud.pub")
 
   tags = merge(var.common_tags, {
-    Name = "cloud-key-1"
-  })
-}
-
-resource "aws_key_pair" "cloud_key_2" {
-  key_name   = "cloud-key-2"
-  public_key = file("/home/ubuntu/.ssh/cloud-key-2.pub")
-
-  tags = merge(var.common_tags, {
-    Name = "cloud-key-2"
-  })
-}
-
-resource "aws_key_pair" "cloud_key_3" {
-  key_name   = "cloud-key-3"
-  public_key = file("/home/ubuntu/.ssh/cloud-key-3.pub")
-
-  tags = merge(var.common_tags, {
-    Name = "cloud-key-3"
-  })
-}
-
-resource "aws_key_pair" "cloud_key_4" {
-  key_name   = "cloud-key-4"
-  public_key = file("/home/ubuntu/.ssh/cloud-key-4.pub")
-
-  tags = merge(var.common_tags, {
-    Name = "cloud-key-4"
+    Name = "key-cloud"
   })
 }
 
@@ -281,7 +282,7 @@ resource "aws_instance" "cloud_1" {
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.subnet["${var.subnet_names[0]}"].id
   private_ip             = var.private_ips[0]
-  key_name               = aws_key_pair.cloud_key_1.key_name
+  key_name               = aws_key_pair.cloud_key.key_name
   vpc_security_group_ids = [aws_security_group.cloud_sg_1.id]
   iam_instance_profile   = aws_iam_instance_profile.cloud_instance_profile.name
 
@@ -295,7 +296,7 @@ resource "aws_instance" "cloud_2" {
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.subnet["${var.subnet_names[1]}"].id
   private_ip             = var.private_ips[1]
-  key_name               = aws_key_pair.cloud_key_2.key_name
+  key_name               = aws_key_pair.cloud_key.key_name
   vpc_security_group_ids = [aws_security_group.cloud_sg_2.id]
   iam_instance_profile   = aws_iam_instance_profile.cloud_instance_profile.name
 
@@ -309,7 +310,7 @@ resource "aws_instance" "cloud_3" {
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.subnet["${var.subnet_names[2]}"].id
   private_ip             = var.private_ips[2]
-  key_name               = aws_key_pair.cloud_key_3.key_name
+  key_name               = aws_key_pair.cloud_key.key_name
   vpc_security_group_ids = [aws_security_group.cloud_sg_3.id]
   iam_instance_profile   = aws_iam_instance_profile.cloud_instance_profile.name
 
@@ -323,7 +324,7 @@ resource "aws_instance" "cloud_4" {
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.subnet["${var.subnet_names[3]}"].id
   private_ip             = var.private_ips[3]
-  key_name               = aws_key_pair.cloud_key_4.key_name
+  key_name               = aws_key_pair.cloud_key.key_name
   vpc_security_group_ids = [aws_security_group.cloud_sg_4.id]
   iam_instance_profile   = aws_iam_instance_profile.cloud_instance_profile.name
 

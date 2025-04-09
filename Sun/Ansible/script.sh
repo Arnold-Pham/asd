@@ -23,6 +23,9 @@ echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://
 apt update
 apt-get install terraform -y
 
+# Ansible
+apt install -y ansible
+
 # AWS CLI
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
@@ -36,26 +39,30 @@ if [ "$CURRENT_HOSTNAME" != "sun" ]; then
     sed -i "s/$CURRENT_HOSTNAME/sun/g" /etc/hosts
 fi
 
-# 4 clés
 SSH_DIR="/home/ubuntu/.ssh"
 mkdir -p "$SSH_DIR"
 chmod 700 "$SSH_DIR"
+KEY_FILE="$SSH_DIR/key-cloud"
+KEY_FILE_PUB="$KEY_FILE.pub"
 
-for i in {1..4}; do
-    KEY_FILE="$SSH_DIR/cloud-key-$i"
-    KEY_FILE_PUB="$KEY_FILE.pub"
+ssh-keygen -t rsa -b 4096 -m PEM -C "key-cloud-$i" -f "$KEY_FILE" -N ""
+chmod 600 "$KEY_FILE"
+chmod 644 "$KEY_FILE_PUB"
 
-    if [ ! -f "$KEY_FILE" ]; then
-        ssh-keygen -t rsa -b 4096 -m PEM -C "cloud-key-$i" -f "$KEY_FILE" -N ""
-    fi
-
-    chmod 600 "$KEY_FILE"
-    chmod 644 "$KEY_FILE_PUB"
-done
-
-Terraform
+# Terraform
 TF_DIR="/home/ubuntu/Cloud/Terraform"
 if [ -d "$TF_DIR" ]; then
     terraform -chdir="$TF_DIR" init
     terraform -chdir="$TF_DIR" apply -auto-approve
+fi
+
+chown -R ubuntu:ubuntu /home/ubuntu/.ssh
+
+sleep 15
+
+# Ansible
+AN_DIR="/home/ubuntu/Cloud/Ansible"
+if ! ansible-playbook -i "$AN_DIR/hosts" --private-key "$KEY_FILE" "$AN_DIR/install.yml" --ssh-common-args="-o StrictHostKeyChecking=accept-new"; then
+    echo -e "${RED}❌ Le playbook Ansible a échoué.${RESET}"
+    exit 1
 fi

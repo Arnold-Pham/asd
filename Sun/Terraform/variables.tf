@@ -49,7 +49,7 @@ variable "subnet_zone" {
 variable "ssh_key_name" {
   description = "Nom de la clé SSH pour l'accès à la machine Sun"
   type        = string
-  default     = "sun-key"
+  default     = "key-sun"
 }
 
 variable "ami" {

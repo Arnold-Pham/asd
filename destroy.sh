@@ -10,7 +10,7 @@ BOLD="\e[1m"
 set -e
 
 if [ "$(id -u)" -ne 0 ]; then
-    echo -e "\n${BOLD}${RED} ❌  SCRIPT A EXECUTER EN TANT QUE ROOT OU AVEC SUDO  ❌ ${RESET}\n"
+    echo -e "${BOLD}${RED}╷\n│  Error: ${RESET}Script à executer en sudo\n${BOLD}${RED}╵${RESET}"
     exit 1
 fi
 
@@ -22,50 +22,45 @@ LOCAL_VARS="$TF_FOLDER/terraform.tfvars.local"
 AN_FOLDER="$BASE/Sun/Ansible"
 HOSTS_FILE="$AN_FOLDER/hosts"
 SSH_FOLDER="$HOME/.ssh"
-SUN_KEY="$SSH_FOLDER/sun-key"
-SUN_KEY_PUB="$SSH_FOLDER/sun-key.pub"
+KEY_SUN="$SSH_FOLDER/key-sun"
+KEY_SUN_PUB="$SSH_FOLDER/key-sun.pub"
 CLOUD_VARS="$BASE/Cloud/Terraform/terraform.tfvars"
 
 echo -e "${BOLD}${BLUE}=============================================${RESET}"
-echo -e "${BOLD}${BLUE}  🚀 Lancement du playbook Ansible  ${RESET}"
+echo -e "${BOLD}${BLUE}  🚀  Destructions des instances distantes   ${RESET}"
 echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
 
-echo -e "${CYAN}📦 Exécution du playbook Ansible...${RESET}\n"
-if ! ansible-playbook -i "$HOSTS_FILE" --private-key "$SUN_KEY" "$AN_FOLDER/destroy.yml" --ssh-common-args="-o StrictHostKeyChecking=accept-new"; then
-    echo -e "${RED}❌ Le playbook Ansible a échoué.${RESET}"
-    exit 1
+echo -e "${CYAN}[INFO] 📦\tExécution du playbook Ansible...${RESET}"
+if ! ansible-playbook -i "$HOSTS_FILE" --private-key "$KEY_SUN" "$AN_FOLDER/destroy.yml" --ssh-common-args="-o StrictHostKeyChecking=accept-new"; then
+    echo -e "${BOLD}${RED}╷\n│  Error: ${RESET}Echec du playbook Ansible\n${BOLD}${RED}╵${RESET}"
+else
+    echo -e "${GREEN}[OK] ✅  Destruction Cloud-n terminé avec succès !${RESET}"
 fi
-
-echo -e "\n${GREEN}🎉 Destruction Cloud-n terminé avec succès !${RESET}\n"
 
 echo -e "\n${BOLD}${BLUE}=============================================${RESET}"
-echo -e "${BOLD}${BLUE}  💥 Destruction de l'instance Terraform  ${RESET}"
+echo -e "${BOLD}${BLUE}  💥  Destruction de l'instance Terraform  ${RESET}"
 echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
 
-if [ -f "$CLOUD_VARS" ]; then
-    rm "$CLOUD_VARS"
-    echo -e "\n${CYAN}[INFO] 🗑️ Fichier $CLOUD_VARS supprimé.${RESET}"
-else
-    echo -e "\n${CYAN}[INFO] 🚫 Fichier $CLOUD_VARS non trouvé, ignorer la suppression.${RESET}"
-fi
-
-echo -e "\n${CYAN}[INFO] 🚧 Destruction de l'instance Terraform en cours...${RESET}\n"
+echo -e "${CYAN}[INFO] 💥\tDestruction de l'instance Terraform en cours...${RESET}"
 if [ -f "$LOCAL_VARS" ]; then
     terraform -chdir="$TF_FOLDER" destroy -auto-approve -var-file="$LOCAL_VARS"
 else
     terraform -chdir="$TF_FOLDER" destroy -auto-approve
 fi
-echo -e "\n${GREEN}[OK] ✅ Instance Terraform détruite avec succès.${RESET}"
+echo -e "${GREEN}[OK] ✅  Instance Terraform détruite avec succès.${RESET}"
 
-echo -e "\n${CYAN}[INFO] 🧹 Nettoyage des fichiers Terraform et clés SSH...${RESET}\n"
+echo -e "\n${BOLD}${BLUE}=======================================================${RESET}"
+echo -e "${BOLD}${BLUE}🧹  Nettoyage des fichiers Terraform et clés SSH...${RESET}"
+echo -e "${BOLD}${BLUE}=======================================================${RESET}\n"
 
-for file in "$SUN_KEY" "$SUN_KEY_PUB" "$HOSTS_FILE" "$TF_FOLDER/.terraform" "$TF_FOLDER/.terraform.lock.hcl" "$TF_FOLDER/terraform.tfstate" "$TF_FOLDER/terraform.tfstate.backup"; do
+for file in "$KEY_SUN" "$KEY_SUN_PUB" "$HOSTS_FILE" "$TF_FOLDER/.terraform" "$TF_FOLDER/.terraform.lock.hcl" "$TF_FOLDER/terraform.tfstate" "$TF_FOLDER/terraform.tfstate.backup" "$CLOUD_VARS"; do
     if [ -e "$file" ]; then
         rm -rf "$file"
-        echo -e "${CYAN}[INFO] 🗑️ $file supprimé.${RESET}"
+        echo -e "${CYAN}[INFO] 🗑️\t$file supprimé.${RESET}"
+        sleep 1
     else
-        echo -e "${CYAN}[INFO] 🚫 $file non trouvé, ignorer la suppression.${RESET}"
+        echo -e "${CYAN}[INFO] 🚫\t$file non trouvé, ignorer la suppression.${RESET}"
     fi
 done
 
-echo -e "\n${GREEN}[OK] 🧑‍💻 Nettoyage terminé avec succès !${RESET}"
+echo -e "${GREEN}[OK] ✅  Nettoyage terminé avec succès !${RESET}"

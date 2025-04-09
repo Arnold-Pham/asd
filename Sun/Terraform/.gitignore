@@ -1,5 +1,5 @@
-sun-key
-sun-key.pub
+key-sun
+key-sun.pub
 
 .terraform
 .terraform.lock.hcl
