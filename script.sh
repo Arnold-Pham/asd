@@ -10,11 +10,6 @@ RESET="\e[0m"
 
 set -e
 
-if [ "$(id -u)" -ne 0 ]; then
-    echo -e "${BOLD}${RED}╷\n│  Error: ${RESET}Script à executer en sudo\n${BOLD}${RED}╵${RESET}"
-    exit 1
-fi
-
 BASE=$(pwd)
 SUN_PUBLIC_IP=""
 TF_FOLDER="$BASE/Sun/Terraform"
@@ -27,7 +22,7 @@ KEY_SUN="$SSH_FOLDER/key-sun"
 KEY_SUN_PUB="$SSH_FOLDER/key-sun.pub"
 CLOUD_VARS="$BASE/Cloud/Terraform/terraform.tfvars"
 
-apt update > /dev/null 2>&1 && apt upgrade -y > /dev/null 2>&1
+sudo apt update > /dev/null 2>&1 && sudo apt upgrade -y > /dev/null 2>&1
 sleep 1
 
 echo -e "${BOLD}${BLUE}=============================================${RESET}"
@@ -37,9 +32,11 @@ echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
 echo -e "${BOLD}${CYAN}[INFO] 🔍 Vérification de Terraform...${RESET}"
 if ! command -v terraform &> /dev/null; then
     echo -e "${YELLOW}[WARN] ⚠️\tTerraform non trouvé. Installation en cours...${RESET}"
-    wget -O - https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
-    apt update && apt install -y terraform
+    sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
+    wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+    gpg --no-default-keyring --keyring /usr/share/keyrings/hashicorp-archive-keyring.gpg --fingerprint
+    echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+    sudo apt update && sudo apt-get install terraform -y
     echo -e "${GREEN}[OK] ✅  Terraform installé avec succès${RESET}"
     sleep 2
 else
@@ -49,7 +46,7 @@ fi
 echo -e "${BOLD}${CYAN}[INFO] 🔍 Vérification de Ansible...${RESET}"
 if ! command -v ansible &> /dev/null; then
     echo -e "${YELLOW}[WARN] ⚠️\tAnsible non trouvé. Installation en cours...${RESET}"
-    apt update && apt install -y ansible
+    sudo apt update && sudo apt install -y ansible
     echo -e "${GREEN}[OK] ✅  Ansible installé avec succès${RESET}"
     sleep 2
 else
@@ -102,7 +99,7 @@ echo -e "${BOLD}${BLUE}=============================================${RESET}"
 sleep 3
 
 for i in {1..5}; do
-    SUN_PUBLIC_IP=$(terraform -chdir="$TF_FOLDER" output -raw sun_public_ip)
+    SUN_PUBLIC_IP=$(terraform -chdir="$TF_FOLDER" output -raw sun_public_ip) 
     if [ -n "$SUN_PUBLIC_IP" ]; then
         echo -e "${CYAN}[INFO] 🌍\tIP récupérée : ${SUN_PUBLIC_IP}${RESET}"
         break
@@ -128,7 +125,7 @@ echo -e "${BOLD}${BLUE}=============================================${RESET}"
 sleep 3
 
 echo -e "\n${CYAN}[INFO] 📦\tExécution du playbook Ansible...${RESET}"
-if ! ansible-playbook -i "$HOSTS_FILE" --private-key "$KEY_SUN" "$AN_FOLDER/install.yml" --ssh-common-args="-o StrictHostKeyChecking=accept-new"; then
+if ! sudo ansible-playbook -i "$HOSTS_FILE" --private-key "$KEY_SUN" "$AN_FOLDER/install.yml" --ssh-common-args="-o StrictHostKeyChecking=accept-new"; then
     echo -e "${BOLD}${RED}╷\n│  Error: ${RESET}Echec du playbook Ansible\n${BOLD}${RED}╵${RESET}"
     exit
 fi

@@ -7,13 +7,6 @@ CYAN="\e[36m"
 RESET="\e[0m"
 BOLD="\e[1m"
 
-set -e
-
-if [ "$(id -u)" -ne 0 ]; then
-    echo -e "${BOLD}${RED}╷\n│  Error: ${RESET}Script à executer en sudo\n${BOLD}${RED}╵${RESET}"
-    exit 1
-fi
-
 BASE=$(pwd)
 SUN_PUBLIC_IP=""
 TF_FOLDER="$BASE/Sun/Terraform"
@@ -27,18 +20,18 @@ KEY_SUN_PUB="$SSH_FOLDER/key-sun.pub"
 CLOUD_VARS="$BASE/Cloud/Terraform/terraform.tfvars"
 
 echo -e "${BOLD}${BLUE}=============================================${RESET}"
-echo -e "${BOLD}${BLUE}  🚀  Destructions des instances distantes   ${RESET}"
+echo -e "${BOLD}${BLUE}  🚀  Destructions des instances distantes${RESET}"
 echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
 
 echo -e "${CYAN}[INFO] 📦\tExécution du playbook Ansible...${RESET}"
-if ! ansible-playbook -i "$HOSTS_FILE" --private-key "$KEY_SUN" "$AN_FOLDER/destroy.yml" --ssh-common-args="-o StrictHostKeyChecking=accept-new"; then
+if ! sudo ansible-playbook -i "$HOSTS_FILE" --private-key "$KEY_SUN" "$AN_FOLDER/destroy.yml" --ssh-common-args="-o StrictHostKeyChecking=accept-new"; then
     echo -e "${BOLD}${RED}╷\n│  Error: ${RESET}Echec du playbook Ansible\n${BOLD}${RED}╵${RESET}"
 else
     echo -e "${GREEN}[OK] ✅  Destruction Cloud-n terminé avec succès !${RESET}"
 fi
 
 echo -e "\n${BOLD}${BLUE}=============================================${RESET}"
-echo -e "${BOLD}${BLUE}  💥  Destruction de l'instance Terraform  ${RESET}"
+echo -e "${BOLD}${BLUE}  💥  Destruction de l'instance Terraform${RESET}"
 echo -e "${BOLD}${BLUE}=============================================${RESET}\n"
 
 echo -e "${CYAN}[INFO] 💥\tDestruction de l'instance Terraform en cours...${RESET}"
@@ -53,13 +46,13 @@ echo -e "\n${BOLD}${BLUE}=======================================================
 echo -e "${BOLD}${BLUE}🧹  Nettoyage des fichiers Terraform et clés SSH...${RESET}"
 echo -e "${BOLD}${BLUE}=======================================================${RESET}\n"
 
-for file in "$KEY_SUN" "$KEY_SUN_PUB" "$HOSTS_FILE" "$TF_FOLDER/.terraform" "$TF_FOLDER/.terraform.lock.hcl" "$TF_FOLDER/terraform.tfstate" "$TF_FOLDER/terraform.tfstate.backup" "$CLOUD_VARS"; do
+for file in "$KEY_SUN" "$KEY_SUN_PUB" "$HOSTS_FILE" "$TF_FOLDER/.terraform" "$TF_FOLDER/.terraform.lock.hcl" "$TF_FOLDER/terraform.tfstate" "$TF_FOLDER/terraform.tfstate.backup" "$CLOUD_VARS" "$BASE/connexion.sh"; do
     if [ -e "$file" ]; then
-        rm -rf "$file"
+        sudo rm -rf "$file"
         echo -e "${CYAN}[INFO] 🗑️\t$file supprimé.${RESET}"
         sleep 1
     else
-        echo -e "${CYAN}[INFO] 🚫\t$file non trouvé, ignorer la suppression.${RESET}"
+        echo -e "${CYAN}[INFO] 🚫   $file non trouvé, ignorer la suppression.${RESET}"
     fi
 done
 

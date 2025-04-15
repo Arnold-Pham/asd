@@ -76,6 +76,12 @@ variable "common_tags" {
   }
 }
 
+variable "public_key_path" {
+  description = "Chemin vers la clé publique SSH"
+  type        = string
+  default     = "~/.ssh/key-sun.pub"
+}
+
 resource "random_id" "suffix" {
   byte_length = 8
 }

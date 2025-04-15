@@ -96,7 +96,7 @@ resource "aws_security_group" "sun_sg" {
 
 resource "aws_key_pair" "sun_key" {
   key_name   = var.ssh_key_name
-  public_key = file("~/.ssh/key-sun.pub")
+  public_key = file(pathexpand(var.public_key_path))
 
   tags = merge(var.common_tags, {
     Name = "key-sun"
